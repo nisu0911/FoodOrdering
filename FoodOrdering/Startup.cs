@@ -14,6 +14,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using FoodOrdering.Services;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using FoodOrdering.Utility;
+using Stripe;
 
 namespace FoodOrdering
 {
@@ -35,6 +37,7 @@ namespace FoodOrdering
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+            services.Configure<StripeSettings>(Configuration.GetSection("Stripe"));
             services.AddSingleton<IEmailSender, EmailSender>();
             services.AddControllersWithViews();
             services.AddRazorPages();
@@ -64,6 +67,8 @@ namespace FoodOrdering
             app.UseStaticFiles();
             app.UseSession();
             app.UseRouting();
+
+            StripeConfiguration.ApiKey = Configuration.GetSection("Stripe")["SecretKey"];
 
             app.UseAuthentication();
             app.UseAuthorization();

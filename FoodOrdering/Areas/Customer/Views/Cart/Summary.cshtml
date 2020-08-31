@@ -1,4 +1,7 @@
 ﻿@model FoodOrdering.Models.ViewModel.OrderDetailsCart
+@using Microsoft.Extensions.Options
+
+@inject IOptions<FoodOrdering.Utility.StripeSettings> Stripe
 
 @{
     ViewData["Title"] = "Summary";
@@ -87,7 +90,7 @@
                                                     <h6 class="my-0">@details.MenuItem.Name</h6>
                                                     <small class="text-muted">Quantity: @details.Count</small>
                                                 </div>
-                                                <span class="text-muted">$@(details.MenuItem.Price * details.Count)</span>
+                                                <span class="text-muted">Rs.@(details.MenuItem.Price * details.Count)</span>
                                                 @{ total += (details.MenuItem.Price * details.Count); }
                                             </li>
                                         }
@@ -98,7 +101,7 @@
                                                     <h6 class="my-0">Promo Code</h6>
                                                     <small class="text-success">@Model.OrderHeader.CouponCode</small>
                                                 </div>
-                                                <span class="text-success">-$@(total - Model.OrderHeader.OrderTotal)</span>
+                                                <span class="text-success">-Rs.total - Model.OrderHeader.OrderTotal)</span>
                                             </li>
                                         }
                                         <li class="list-group-item d-flex justify-content-between bg-light">
@@ -112,15 +115,33 @@
                     </div>
                     <div class="card-footer">
                         <div class="row">
-                            <div class="col-12 col-md-4 offset-md-8">                               
+                            <div class="col-12 col-md-4 offset-md-8">      
+                                
+                                @{ 
+                                    var OrderTotalForStripe = Model.OrderHeader.OrderTotal * 100;
+                                }
+
+                                <script 
+                                    src = "https://checkout.stripe.com/checkout.js" class="stripe-button"
+                                    data-key="@Stripe.Value.PublishableKey"
+                                    data-amount="@OrderTotalForStripe"
+                                    data-name="FoodOrdering"
+                                    data-label="Place Order"
+                                    data-description="Spicy Chaku"
+                                    data-locale="auto"
+                                    data-allow-remember-me="false"
+                                    data-image="https://stripe.com/img/documentation/checkout/marketplace.png">
+                                </script>
+                                <script>
+                                    document.getElementsByClassName("stripe-button-el")[0].style.display = 'none';
+                                </script>
                                 <button type="submit" id="btnPlaceOrder" onclick="return validateInput()" value="Place Order" class="btn btn-success form-control">Place Order</button>
                             </div>
                         </div>
                     </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div>                                               
     }
     else
     {
