@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
 using FoodOrdering.Data;
@@ -37,10 +39,24 @@ namespace FoodOrdering
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddScoped<IDbInitializer, DbInitializer>();
             services.Configure<StripeSettings>(Configuration.GetSection("Stripe"));
             services.AddSingleton<IEmailSender, EmailSender>();
             services.AddControllersWithViews();
             services.AddRazorPages();
+            services.AddAuthentication().AddFacebook(facebookOptions =>
+            {
+                facebookOptions.AppId = "16465198489456";
+                facebookOptions.AppSecret = "sdxcuhjvgjcdykrcikvtud";
+            });
+
+            services.AddAuthentication().AddGoogle(googleOptions =>
+            {
+                googleOptions.ClientId = "9465ljkgly546jhjvf.apps.googleusercontent.com";
+                googleOptions.ClientSecret = "zsxdfckglvhvkjh";
+            });
+
             services.AddSession(options =>
             {
                 options.Cookie.IsEssential = true;
@@ -50,7 +66,7 @@ namespace FoodOrdering
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IDbInitializer dbInitializer)
         {
             if (env.IsDevelopment())
             {
@@ -68,8 +84,9 @@ namespace FoodOrdering
             app.UseSession();
             app.UseRouting();
 
-            StripeConfiguration.ApiKey = Configuration.GetSection("Stripe")["SecretKey"];
 
+            StripeConfiguration.ApiKey = Configuration.GetSection("Stripe")["SecretKey"];
+            dbInitializer.Initialize();
             app.UseAuthentication();
             app.UseAuthorization();
 
